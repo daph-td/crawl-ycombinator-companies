@@ -24,8 +24,24 @@ driver = webdriver.Chrome(options=opt)
 # setup wait
 wait = WebDriverWait(driver, 10)
 
-URL = 'https://www.ycombinator.com/companies/?batch=W21&batch=S20&batch=W20&batch=S19&batch=W19&industry=Education'
+URL = input('Please insert the URL: ')
 driver.get(URL)
+sleep(10)
+
+def GetProjectURL():
+    all_project_URL = []
+    cap = int(input('No. of companies you wanna collect: '))
+    while len(all_project_URL) < cap:
+        driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
+        sleep(4)
+        page_source = BeautifulSoup(driver.page_source, features="html.parser")
+        projects = page_source.find_all('a', class_ = 'styles-module__company___1UVnl no-hovercard')
+        for project in projects:
+            project_ID = project.get('href')
+            project_URL = "https://www.ycombinator.com" + project_ID
+            if project_URL not in all_project_URL:
+                all_project_URL.append(project_URL.lower())
+    return all_project_URL
 
 def getFounders(founder_card):
     founder_name = founder_card.find('div', class_='font-bold').get_text()
@@ -36,22 +52,12 @@ def getFounders(founder_card):
     except AttributeError:
         return founder_name, 'NA'
 
-def GetProjectURL():
-    page_source = BeautifulSoup(driver.page_source)
-    projects = page_source.find_all('a', class_ = 'styles-module__company___1UVnl no-hovercard')
-    all_project_URL = []
-    for project in projects:
-        project_ID = project.get('href')
-        project_URL = "https://www.ycombinator.com" + project_ID
-        if project_URL not in all_project_URL:
-            all_project_URL.append(project_URL.lower())
-    return all_project_URL
-
 URLs_all_page_clean = GetProjectURL()
 print(URLs_all_page_clean, len(URLs_all_page_clean))
 
 # Scrape the data of 1 Linkedin profile, and write the data to a .CSV file
-with open('YC_EdTech_1920_3.csv', 'w',  newline = '') as file_output:
+file_name = input('Please name the file: ')
+with open(f'{file_name}.csv', 'w',  newline = '') as file_output:
     headers = [
         'ycomURL', 'company_name',
         'company_tagline', 'company_description', 
